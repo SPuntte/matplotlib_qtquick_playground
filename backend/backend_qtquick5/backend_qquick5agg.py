@@ -9,8 +9,6 @@ from matplotlib.backend_bases import cursors
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5 import TimerQT
 
-from matplotlib.externals import six
-
 from PyQt5 import QtCore, QtGui, QtQuick, QtWidgets
 
 DEBUG = False
@@ -107,21 +105,14 @@ class FigureCanvasQtQuickAgg(QtQuick.QQuickPaintedItem, FigureCanvasAgg):
                   self.get_width_height())
 
         if self.blitbox is None:
-            # matplotlib is in rgba byte order.  QImage wants to put the bytes
-            # into argb format and is in a 4 byte unsigned int.  Little endian
-            # system is LSB first and expects the bytes in reverse order
-            # (bgra).
-            if QtCore.QSysInfo.ByteOrder == QtCore.QSysInfo.LittleEndian:
-                stringBuffer = self.renderer._renderer.tostring_bgra()
-            else:
-                stringBuffer = self.renderer._renderer.tostring_argb()
-
-            refcnt = sys.getrefcount(stringBuffer)
+            # Agg's buffers are unmultiplied RGBA8888, QImage supports e.g. premultiplied ARGB32
+            reg = self.copy_from_bbox(self.renderer.bbox)
+            buf = matplotlib.cbook._unmultiplied_rgba8888_to_premultiplied_argb32(
+                memoryview(reg))
 
             # convert the Agg rendered image -> qImage
-            qImage = QtGui.QImage(stringBuffer, self.renderer.width,
-                                  self.renderer.height,
-                                  QtGui.QImage.Format_ARGB32)
+            qImage = QtGui.QImage(buf, buf.shape[1], buf.shape[0],
+                                  QtGui.QImage.Format_ARGB32_Premultiplied)
             # get the rectangle for the image
             rect = qImage.rect()
             # p = QtGui.QPainter(self)
@@ -226,7 +217,10 @@ class FigureCanvasQtQuickAgg(QtQuick.QQuickPaintedItem, FigureCanvasAgg):
         QtQuick.QQuickPaintedItem.geometryChanged(self, new_geometry, old_geometry)
         
     def hoverEnterEvent(self, event):
-        FigureCanvasAgg.enter_notify_event(self, guiEvent=event)
+        x = event.pos().x()
+        # flipy so y=0 is bottom of canvas
+        y = self.figure.bbox.height - event.pos().y()
+        FigureCanvasAgg.enter_notify_event(self, guiEvent=event, xy=(x,y))
 
     def hoverLeaveEvent(self, event):
         QtWidgets.QApplication.restoreOverrideCursor()
@@ -343,7 +337,7 @@ class FigureCanvasQtQuickAgg(QtQuick.QQuickPaintedItem, FigureCanvasAgg):
             if event_key > MAX_UNICODE:
                 return None
 
-            key = six.unichr(event_key)
+            key = chr(event_key)
             # qt delivers capitalized letters.  fix capitalization
             # note that capslock is ignored
             if 'shift' in mods:
@@ -377,15 +371,15 @@ class FigureCanvasQtQuickAgg(QtQuick.QQuickPaintedItem, FigureCanvasAgg):
         qApp.processEvents()
 
     def start_event_loop(self, timeout):
-        FigureCanvasAgg.start_event_loop_default(self, timeout)
+        FigureCanvasAgg.start_event_loop(self, timeout)
 
     start_event_loop.__doc__ = \
-                             FigureCanvasAgg.start_event_loop_default.__doc__
+                             FigureCanvasAgg.start_event_loop.__doc__
 
     def stop_event_loop(self):
-        FigureCanvasAgg.stop_event_loop_default(self)
+        FigureCanvasAgg.stop_event_loop(self)
 
-    stop_event_loop.__doc__ = FigureCanvasAgg.stop_event_loop_default.__doc__
+    stop_event_loop.__doc__ = FigureCanvasAgg.stop_event_loop.__doc__
 
      
 class FigureQtQuickAggToolbar(FigureCanvasQtQuickAgg):
@@ -479,7 +473,7 @@ class FigureQtQuickAggToolbar(FigureCanvasQtQuickAgg):
     @QtCore.pyqtProperty('QStringList', constant=True)
     def fileFilters(self):
         filetypes = self.canvas.get_supported_filetypes_grouped()
-        sorted_filetypes = list(six.iteritems(filetypes))
+        sorted_filetypes = list(filetypes.items())
         sorted_filetypes.sort()
         
         filters = []
@@ -589,8 +583,8 @@ class FigureQtQuickAggToolbar(FigureCanvasQtQuickAgg):
             except (ValueError, OverflowError):
                 pass
             else:
-                artists = [a for a in event.inaxes.mouseover_set
-                           if a.contains(event)]
+                artists = [a for a in event.inaxes._mouseover_set
+                           if a.contains(event) and a.get_visible()]
 
                 if artists:
 
@@ -1003,9 +997,9 @@ class FigureQtQuickAggToolbar(FigureCanvasQtQuickAgg):
         if fname:
             fname = QtCore.QUrl(fname).toLocalFile()
             # save dir for next time
-            savefig_dir = os.path.dirname(six.text_type(fname))
+            savefig_dir = os.path.dirname(str(fname))
             matplotlib.rcParams['savefig.directory'] = savefig_dir
-            fname = six.text_type(fname)
+            fname = str(fname)
         FigureCanvasAgg.print_figure(self, fname, *args, **kwargs)
         self.draw()
      
