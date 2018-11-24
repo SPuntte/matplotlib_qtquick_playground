@@ -1,5 +1,5 @@
 import Backend 1.0
-import QtQuick 2.6
+import QtQuick 2.11
 
 Item {
     width: 480

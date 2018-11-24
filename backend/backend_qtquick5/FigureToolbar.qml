@@ -1,8 +1,8 @@
 import Backend 1.0
-import QtQuick 2.6
-import QtQuick.Layouts 1.2
-import Qt.labs.controls 1.0
-import QtQuick.Dialogs 1.2
+import QtQuick 2.11
+import QtQuick.Layouts 1.11
+import QtQuick.Controls 2.4
+import QtQuick.Dialogs 1.3
 
 Item{           
     width: 640

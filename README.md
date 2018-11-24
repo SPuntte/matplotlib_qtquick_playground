@@ -5,7 +5,7 @@ https://github.com/eliben/code-for-blog/tree/master/2009/pyqt_dataplot_demo
 Derivation of the example have been made based on the three following Qt technologies:
 - QtWidgets
 - QtQuick Controls 1.0
-- QtQuick Controls 2.0 (actually Qt.labs.controls 1.0 as I used PyQt 5.6)
+- QtQuick Controls 2.0
 
 The goal of this work was to play around with QtQuick and PyQt5. The integration of matplotlib with QtWidgets is the best
 as a backend support full interactivity and navigation toolbar. A new matplotlib backend based on a QQuickItem has been
@@ -40,15 +40,15 @@ Requirements
 ============
 
 * Python >= 3.5
-* PyQt = 5.6 (if you plan to use PyQt 5.7, references have changed as QtQuick.Controls 2.0 have integrated the official library)
-* matplolib >= 1.4
+* PyQt = 5.11
+* matplolib = 3.0
 
 License
 =======
 
 MIT License
 
-Copyright (C) 2016 Frederic Collonval
+Copyright (C) 2018 Frederic Collonval, Pontus Lundström
 
 The code for QtQuick Controls 2.0 makes used of the KDE Breeze Icons Theme (https://github.com/KDE/breeze-icons) distributed under LGPLv3
 
