@@ -282,13 +282,7 @@ class Form(QObject):
         self.stateChanged.emit()
         
         
-def main():
-    argv = sys.argv
-    
-    # Trick to set the style / not found how to do it in pythonic way
-    argv.extend(["-style", "universal"])
-    app = QGuiApplication(argv)
-
+def main(app):
     qmlRegisterType(FigureCanvasQTAggToolbar, "Backend", 1, 0, "FigureToolbar")    
     imgProvider = MatplotlibIconProvider()
     
@@ -309,11 +303,13 @@ def main():
     mainApp.figure = win.findChild(QObject, "figure").getFigure()
     
     rc = app.exec_()
-    # There is some trouble arising when deleting all the objects here
-    # but I have not figure out how to solve the error message.
-    # It looks like 'app' is destroyed before some QObject
     sys.exit(rc)
 
 
 if __name__ == "__main__":
-    main()
+    argv = sys.argv
+
+    # Trick to set the style / not found how to do it in pythonic way
+    argv.extend(["-style", "universal"])
+    app = QGuiApplication(argv)
+    main(app)

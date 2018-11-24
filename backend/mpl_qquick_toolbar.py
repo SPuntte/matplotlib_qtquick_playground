@@ -34,11 +34,7 @@ import matplotlib.pyplot as plt
 
 import numpy as np       
         
-def main():
-    argv = sys.argv
-    
-    app = QGuiApplication(argv)
-    
+def main(app):
     qmlRegisterType(FigureCanvasQTAggToolbar, "Backend", 1, 0, "FigureToolbar")
     
     imgProvider = MatplotlibIconProvider()
@@ -63,4 +59,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    argv = sys.argv
+    app = QGuiApplication(argv)
+    main(app)
