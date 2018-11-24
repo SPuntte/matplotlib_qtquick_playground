@@ -128,7 +128,7 @@ class DataSeriesModel(QAbstractListModel):
         series = self._data_series[index.row()]
         
         if role == self.SelectedRole:
-            series._selected = not value
+            series._selected = value
             self.dataChanged.emit(index, index, [role,])
             return True
                 
