@@ -1,1 +1,4 @@
-backend/backend_qtquick5/__pycache__
+__pycache__/
+
+# Precompiled QML
+*.qmlc
