@@ -215,21 +215,25 @@ class FigureCanvasQtQuickAgg(QtQuick.QQuickPaintedItem, FigureCanvasAgg):
         FigureCanvasAgg.resize_event(self)
         self.draw_idle()
         QtQuick.QQuickPaintedItem.geometryChanged(self, new_geometry, old_geometry)
-        
-    def hoverEnterEvent(self, event):
+
+    # Inspiration: matplotlib.backends.backend_qt5
+    def mouseEventCoords(self, event):
+        # TODO: Does this work with HiDPI?
         x = event.pos().x()
         # flipy so y=0 is bottom of canvas
         y = self.figure.bbox.height - event.pos().y()
-        FigureCanvasAgg.enter_notify_event(self, guiEvent=event, xy=(x,y))
+        return x, y
+
+    def hoverEnterEvent(self, event):
+        FigureCanvasAgg.enter_notify_event(self, guiEvent=event,
+            xy=self.mouseEventCoords(event))
 
     def hoverLeaveEvent(self, event):
         QtWidgets.QApplication.restoreOverrideCursor()
         FigureCanvasAgg.leave_notify_event(self, guiEvent=event)
 
     def hoverMoveEvent(self, event):
-        x = event.pos().x()
-        # flipy so y=0 is bottom of canvas
-        y = self.figure.bbox.height - event.pos().y()
+        x, y = self.mouseEventCoords(event)
         FigureCanvasAgg.motion_notify_event(self, x, y, guiEvent=event)
         
         # if DEBUG: 
@@ -238,17 +242,13 @@ class FigureCanvasQtQuickAgg(QtQuick.QQuickPaintedItem, FigureCanvasAgg):
     # hoverMoveEvent kicks in when no mouse buttons are pressed
     # otherwise mouseMoveEvent are emitted
     def mouseMoveEvent(self, event):
-        x = event.x()
-        # flipy so y=0 is bottom of canvas
-        y = self.figure.bbox.height - event.y()
+        x, y = self.mouseEventCoords(event)
         FigureCanvasAgg.motion_notify_event(self, x, y, guiEvent=event)
         # if DEBUG: 
             # print('mouse move')
 
     def mousePressEvent(self, event):
-        x = event.pos().x()
-        # flipy so y=0 is bottom of canvas
-        y = self.figure.bbox.height - event.pos().y()
+        x, y = self.mouseEventCoords(event)
         button = self.buttond.get(event.button())
         if button is not None:
             FigureCanvasAgg.button_press_event(self, x, y, button,
@@ -257,9 +257,7 @@ class FigureCanvasQtQuickAgg(QtQuick.QQuickPaintedItem, FigureCanvasAgg):
             print('button pressed:', event.button())
 
     def mouseReleaseEvent(self, event):
-        x = event.x()
-        # flipy so y=0 is bottom of canvas
-        y = self.figure.bbox.height - event.y()
+        x, y = self.mouseEventCoords(event)
         button = self.buttond.get(event.button())
         if button is not None:
             FigureCanvasAgg.button_release_event(self, x, y, button,
@@ -268,9 +266,7 @@ class FigureCanvasQtQuickAgg(QtQuick.QQuickPaintedItem, FigureCanvasAgg):
             print('button released')
 
     def mouseDoubleClickEvent(self, event):
-        x = event.pos().x()
-        # flipy so y=0 is bottom of canvas
-        y = self.figure.bbox.height - event.pos().y()
+        x, y = self.mouseEventCoords(event)
         button = self.buttond.get(event.button())
         if button is not None:
             FigureCanvasAgg.button_press_event(self, x, y,
@@ -280,9 +276,7 @@ class FigureCanvasQtQuickAgg(QtQuick.QQuickPaintedItem, FigureCanvasAgg):
             print('button doubleclicked:', event.button())
 
     def wheelEvent(self, event):
-        x = event.x()
-        # flipy so y=0 is bottom of canvas
-        y = self.figure.bbox.height - event.y()
+        x, y = self.mouseEventCoords(event)
         # from QWheelEvent::delta doc
         if event.pixelDelta().x() == 0 and event.pixelDelta().y() == 0:
             steps = event.angleDelta().y() / 120
